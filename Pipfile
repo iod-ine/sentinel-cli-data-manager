@@ -9,6 +9,7 @@ requests = "*"
 feedparser = "*"
 pandas = "*"
 geopandas = "*"
+pyyaml = "*"
 
 [dev-packages]
 pytest = "*"

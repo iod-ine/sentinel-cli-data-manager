@@ -1,0 +1,41 @@
+Authentication:
+
+  Copernicus Open Access Hub:
+    User: your-scihub-username
+    Password: your-scihub-password
+
+  Copernicus Open Data Access:
+    User: your-eumetsat-username
+    Password: your-eumetsat-password
+
+  Environment:
+    Scihub environment variable: COPERNICUS_AUTH
+    EUMETSAT environment variable: EUMETSAT_AUTH
+
+  File:
+    Copernicus file: .coah_auth.txt
+    EUMETSAT file: .coda_auth.txt
+
+Search:
+
+  Start date: 2021-10-01
+  End date: today
+
+  ROI:
+    WKT: your-wkt-roi
+    File: path-to-file-with-wkt
+    Geopackage:
+      Layer: ROI
+
+  Sentinel-1:
+    Product type: GRD
+    Sensor mode: IW
+
+  Sentinel-2:
+    Product type: S2MSI2A
+    Max cloud cover %: 10
+    Tiles: [ T35VPG, T36VUM ]
+
+  Sentinel-3:
+    Instruments: [ OLCI, SLSTR ]
+    Product level: L2
