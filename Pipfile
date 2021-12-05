@@ -10,6 +10,7 @@ feedparser = "*"
 pandas = "*"
 geopandas = "*"
 pyyaml = "*"
+pyperclip = "*"
 
 [dev-packages]
 pytest = "*"
