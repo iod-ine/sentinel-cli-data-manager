@@ -3,6 +3,7 @@
 import click
 
 from configuration import init
+from searching import search
 from searching import generate_query
 
 
@@ -14,6 +15,7 @@ def sdm():
 
 
 sdm.add_command(init)
+sdm.add_command(search)
 sdm.add_command(generate_query)
 
 # sdm generate-query

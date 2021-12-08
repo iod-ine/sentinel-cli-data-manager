@@ -14,19 +14,13 @@ def generate_metadata_database():
         cur = con.cursor()
 
         cur.execute(
-            'CREATE TABLE queries('
-            'text text,'
-            'num_results integer'
-            ');'
-        )
-
-        cur.execute(
             'CREATE TABLE metadata('
-            'product_id text,'
-            'title text,'
-            'summary text,'
-            'footprint_wkt text,'
-            'file_size integer,'
-            'eumetsat boolean'
+            'product_id TEXT,'
+            'title TEXT,'
+            'summary TEXT,'
+            'footprint_wkt TEXT,'
+            'file_size INTEGER,'
+            'eumetsat BOOLEAN,'
+            'status TEXT'
             ');'
         )

@@ -1,5 +1,9 @@
 Authentication:
 
+  Environment:
+    Scihub environment variable: COPERNICUS_AUTH
+    EUMETSAT environment variable: EUMETSAT_AUTH
+
   Copernicus Open Access Hub:
     User: your-scihub-username
     Password: your-scihub-password
@@ -7,10 +11,6 @@ Authentication:
   Copernicus Open Data Access:
     User: your-eumetsat-username
     Password: your-eumetsat-password
-
-  Environment:
-    Scihub environment variable: COPERNICUS_AUTH
-    EUMETSAT environment variable: EUMETSAT_AUTH
 
   File:
     Copernicus file: .coah_auth.txt
@@ -22,10 +22,10 @@ Search:
   End date: today
 
   ROI:
-    WKT: your-wkt-roi
-    File: path-to-file-with-wkt
     Geopackage:
       Layer: ROI
+    WKT: your-wkt-roi
+    File: path-to-file-with-wkt
 
   Sentinel-1:
     Product type: GRD
