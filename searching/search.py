@@ -38,8 +38,8 @@ def search(eumetsat):
         query = api.generate_query(s1=s1, s2=s2, s3=s3)
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        search_thread = executor.submit(lambda: api.execute_search_query(query))
-        executor.submit(lambda: api.wait_for_search_thread(search_thread))
+        search_thread = executor.submit(api.execute_search_query, query, 0, eumetsat)
+        executor.submit(api.wait_for_search_thread, search_thread)
 
     search_request = search_thread.result()
 
