@@ -21,3 +21,11 @@ class AlreadyDownloadedError(Exception):
     def __init__(self, filename):
         super(AlreadyDownloadedError, self).__init__()
         self.filename = filename
+
+
+class FailedRequestError(Exception):
+    """ Raised when something goes wrong with a request. """
+
+    def __init__(self, request):
+        super(FailedRequestError, self).__init__()
+        self.request = request
