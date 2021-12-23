@@ -23,10 +23,10 @@ def get_roi():
 
     params = get_config().get('Search').get('ROI')
 
-    if params.get('WKT') is not None:
+    if params.get('WKT') is not None and params.get('WKT') != '<wkt>':
         return params.get('WKT')
 
-    if params.get('File') is not None:
+    if params.get('File') is not None and params.get('File') != '<file-with-wkt>':
         with open(params.get('File'), 'r') as f:
             return f.read().strip()
 
