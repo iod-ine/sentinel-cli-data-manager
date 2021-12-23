@@ -23,3 +23,25 @@ def generate_metadata_database():
             'status TEXT'
             ');'
         )
+
+
+def get_entry_by_id(id_):
+    """ Return the entry with the specified product ID. """
+
+    with sqlite3.connect(paths.database) as connection:
+        cursor = connection.cursor()
+        cursor.execute('SELECT * FROM metadata WHERE product_id = ?;', (id_,))
+        result = cursor.fetchone()
+
+    return result
+
+
+def get_entry_by_name(name):
+    """ Return the entry with the specified product title. """
+
+    with sqlite3.connect(paths.database) as connection:
+        cursor = connection.cursor()
+        cursor.execute('SELECT * FROM metadata WHERE title = ?;', (name,))
+        result = cursor.fetchone()
+
+    return result

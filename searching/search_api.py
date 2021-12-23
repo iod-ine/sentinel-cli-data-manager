@@ -10,6 +10,7 @@ import feedparser
 import configuration.urls as urls
 import configuration.paths as paths
 import configuration.config as config
+import configuration.database as database
 import configuration.exceptions as exceptions
 import configuration.authentication as authentication
 
@@ -194,3 +195,27 @@ def wait_for_search_thread(search_thread):
         click.echo(f'\r{symbols[index]} Searching for matching products...', nl=False)
         time.sleep(0.1)
         index = index + 1 if index < 3 else 0
+
+
+def find_product_by_name(name, eumetsat=False):
+    """ Execute a simple search query for a single product by its name.
+
+     Notes:
+         Returns True when the request was successful.
+
+    """
+
+    result = database.get_entry_by_name(name)
+
+    if result is not None:
+        return result
+
+    request = execute_search_query(query=name, start=0, eumetsat=eumetsat)
+    new, total = process_search_request(request, eumetsat=eumetsat)
+
+    if total == 0:
+        return
+
+    result = database.get_entry_by_name(name)
+
+    return result

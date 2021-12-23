@@ -2,6 +2,7 @@
 
 import click
 
+from fetching import product
 from fetching import metadata
 
 
@@ -12,4 +13,5 @@ def fetch():
     return
 
 
+fetch.add_command(product)
 fetch.add_command(metadata)

@@ -1,7 +1,12 @@
 """ Manage the Copernicus / EUMETSAT OData API. """
 
 import re
+import time
+import shutil
+import pathlib
 import sqlite3
+
+import click
 import requests
 import feedparser
 
@@ -79,3 +84,30 @@ def fetch_metadata_by_ids(ids, eumetsat=False):
     for i, id_ in enumerate(ids, 1):
         fetch_metadata_by_id(id_, eumetsat=eumetsat)
         yield i
+
+
+def write_request_content_to_file(request, file):
+    """ Stream the opened request to the specified file. """
+
+    with open(file, 'bw') as f:
+        shutil.copyfileobj(request.raw, f)
+
+
+def wait_for_download_thread(download_thread, file, target_size):
+    """ Display the progress bar while waiting for the download thread to finish. """
+
+    start_time = time.time()
+
+    while download_thread.running():
+        current_size = pathlib.Path(file).stat().st_size
+
+        target_size_mb = round(target_size / 1024 / 1024, 1)
+        current_size_mb = round(current_size / 1024 / 1024, 1)
+        percent_done = current_size / target_size * 100
+
+        elapsed_time = time.gmtime(time.time() - start_time)
+        elapsed_time = time.strftime("%H:%M:%S", elapsed_time)
+
+        click.echo(f'\r\033[0J    Downloading: {current_size_mb} / {target_size_mb} MB', nl=False)
+        click.echo(f' [{percent_done:.2f}%] {elapsed_time}', nl=False)
+        time.sleep(0.1)
