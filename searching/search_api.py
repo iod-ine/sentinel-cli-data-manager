@@ -14,7 +14,7 @@ import configuration.exceptions as exceptions
 import configuration.authentication as authentication
 
 
-def execute_search_query(query, start=0, eumetsat=False):
+def execute_search_query(query, start, eumetsat=False):
     """ Send a GET request with the query to Copernicus/EUMETSAT Open Search API.
 
     Args:

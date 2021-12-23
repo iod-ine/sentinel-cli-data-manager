@@ -10,7 +10,9 @@ import configuration.config as config
 
 @click.command()
 @click.option('--eumetsat', is_flag=True, help='Send the request to EUMETSAT (for Sentinel-3 ocean data).')
-def search(eumetsat):
+@click.option('--start', default=0, show_default=True,
+              help='When many products are matched (>100), this specifies the first to return.')
+def search(eumetsat, start):
     """ Execute a search request based on the configuration. """
 
     try:
@@ -38,7 +40,7 @@ def search(eumetsat):
         query = api.generate_query(s1=s1, s2=s2, s3=s3)
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        search_thread = executor.submit(api.execute_search_query, query, 0, eumetsat)
+        search_thread = executor.submit(api.execute_search_query, query, start, eumetsat)
         executor.submit(api.wait_for_search_thread, search_thread)
 
     search_request = search_thread.result()
