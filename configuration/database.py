@@ -15,9 +15,8 @@ def generate_metadata_database():
 
         cur.execute(
             'CREATE TABLE metadata('
-            'product_id TEXT,'
-            'title TEXT,'
-            'summary TEXT,'
+            'product_id TEXT PRIMARY KEY,'
+            'title TEXT UNIQUE,'
             'footprint_wkt TEXT,'
             'file_size INTEGER,'
             'eumetsat BOOLEAN,'

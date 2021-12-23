@@ -1,4 +1,4 @@
-""" `sdm fetch metadata ` command downloads metadata for all products in the database. """
+""" `sdm fetch metadata` command downloads metadata for all products in the database. """
 
 import sqlite3
 

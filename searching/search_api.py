@@ -51,7 +51,7 @@ def process_search_request(request, eumetsat=False):
 
     if entries:
         lookup_query = 'SELECT count(*) FROM metadata WHERE product_id = ?;'
-        insert_query = 'INSERT INTO metadata(product_id, title, summary, eumetsat, status) VALUES (?, ?, ?, ?, ?);'
+        insert_query = 'INSERT INTO metadata(product_id, title, eumetsat, status) VALUES (?, ?, ?, ?);'
         new_count, old_count = 0, 0
 
         with sqlite3.connect(paths.database) as connection:
@@ -67,7 +67,7 @@ def process_search_request(request, eumetsat=False):
                 # everything else is not yet in the database
                 cursor.execute(
                     insert_query,
-                    (entry['id'], entry['title'], entry['summary'], int(eumetsat), 'found')
+                    (entry['id'], entry['title'], int(eumetsat), 'found')
                 )
                 new_count += 1
 

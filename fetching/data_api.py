@@ -11,16 +11,18 @@ import configuration.exceptions as exceptions
 import configuration.authentication as authentication
 
 
-def fetch_metadata_by_ids(ids, eumetsat=False):
+def fetch_metadata_by_id(id_, eumetsat=False):
     """ Fetch metadata for the product with the given ID.
 
     Args:
-        ids (list of str): List of product IDs to fetch metadata for.
+        id_ (str): ID to fetch metadata for.
         eumetsat (bool): Use Eumetsat instead of Copernicus OA Hub (for Sentinel-3 ocean data).
 
+    Returns:
+       id_, title, wkt, file_size, eumetsat, status: values for columns of the database.
+
     Notes:
-        The function works like a generator, yielding the number of processed products. I want to keep track
-        of the fetching progress within the command, to display some sort of progress. This is a way to do that.
+        The function does not check if the metadata is already in the database by design.
 
     """
 
@@ -29,30 +31,51 @@ def fetch_metadata_by_ids(ids, eumetsat=False):
     if auth is None:
         raise exceptions.NoAuthenticationFoundError()
 
-    query = 'UPDATE metadata SET footprint_wkt = ?, file_size = ?, status = ? WHERE product_id = ?;'
+    query = 'INSERT INTO metadata(product_id, title, footprint_wkt, file_size, eumetsat, status) VALUES ' \
+            '(?, ?, ?, ?, ?, ?) ON CONFLICT(product_id) DO UPDATE SET footprint_wkt = ?, file_size = ?, status = ?;'
+
     coordinates_regex = re.compile(r'<gml:coordinates>(.+)</gml:coordinates>')
 
+    url = urls.get_product_url(id_, eumetsat=eumetsat)
+    request = requests.get(url, auth=auth)
+
+    if request.status_code != 200:
+        raise exceptions.FailedRequestError(request)
+
+    entry = feedparser.parse(request.content)['entries'][0]
+
+    title = entry['d_name']
+
+    extracted_coordinates = coordinates_regex.findall(entry['d_contentgeometry'])[0]
+    extracted_coordinates = extracted_coordinates.split(' ')
+    extracted_coordinates = ','.join([' '.join(s.split(',')[::-1]) for s in extracted_coordinates])
+
+    wkt = f'Polygon(({extracted_coordinates}))'
+    file_size = int(entry['d_contentlength'])
+
+    # EUMETSAT has no offline products, so their feeds don't have the 'd_online' property.
+    status = 'online' if entry.get('d_online', 'true') == 'true' else 'offline'
+
+    with sqlite3.connect(paths.database) as connection:
+        cursor = connection.cursor()
+        cursor.execute(query, (id_, title, wkt, file_size, eumetsat, status, wkt, file_size, status))
+
+    return id_, title, wkt, file_size, eumetsat, status
+
+
+def fetch_metadata_by_ids(ids, eumetsat=False):
+    """ Fetch metadata for the product with the given ID.
+
+    Args:
+        ids (list of str): List of IDs to fetch metadata for.
+        eumetsat (bool): Use Eumetsat instead of Copernicus OA Hub (for Sentinel-3 ocean data).
+
+    Notes:
+        The function works like a generator, yielding the number of processed products.
+        That is a way to keep progress when fetching multiple results.
+
+    """
+
     for i, id_ in enumerate(ids, 1):
-        url = urls.get_product_url(id_, eumetsat=eumetsat)
-        request = requests.get(url, auth=auth)
-
-        if request.status_code != 200:
-            raise exceptions.FailedRequestError(request)
-
-        entry = feedparser.parse(request.content)['entries'][0]
-
-        extracted_coordinates = coordinates_regex.findall(entry['d_contentgeometry'])[0]
-        extracted_coordinates = extracted_coordinates.split(' ')
-        extracted_coordinates = ','.join([' '.join(s.split(',')[::-1]) for s in extracted_coordinates])
-
-        wkt = f'Polygon(({extracted_coordinates}))'
-        file_size = int(entry['d_contentlength'])
-
-        # EUMETSAT has no offline products, so their feeds don't have the 'd_online' property.
-        status = 'online' if entry.get('d_online', 'true') == 'true' else 'offline'
-
-        with sqlite3.connect(paths.database) as connection:
-            cursor = connection.cursor()
-            cursor.execute(query, (wkt, file_size, status, id_))
-
+        fetch_metadata_by_id(id_, eumetsat=eumetsat)
         yield i
