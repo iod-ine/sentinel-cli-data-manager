@@ -116,6 +116,9 @@ def generate_sentinel1_search_query():
 
     params = config.get_config().get('Search').get('Sentinel-1')
 
+    if params is None:
+        return ""
+
     query = 'platformname:Sentinel-1 '
     query += f'AND {params["Sensor mode"]} '
     query += f'AND {params["Product type"]} AND beginposition:'
@@ -132,6 +135,9 @@ def generate_sentinel2_search_query():
     start_date, end_date = config.get_dates()
 
     params = config.get_config().get('Search').get('Sentinel-2')
+
+    if params is None:
+        return ""
 
     query = 'platformname:Sentinel-2 '
     query += f'AND producttype:{params["Product type"]} AND beginposition:'
@@ -159,6 +165,9 @@ def generate_sentinel3_search_query():
     start_date, end_date = config.get_dates()
 
     params = config.get_config().get('Search').get('Sentinel-3')
+
+    if params is None:
+        return ""
 
     query = 'platformname:Sentinel-3 AND beginposition:'
     query += f'[{start_date}T00:00:00.000Z TO {end_date}T23:59:59.999Z] '
