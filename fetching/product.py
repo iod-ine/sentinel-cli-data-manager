@@ -1,10 +1,8 @@
 """ `sdm fetch product` command downloads individual products. """
 
-import shutil
-import concurrent.futures
+import multiprocessing
 
 import click
-import requests
 
 import fetching.data_api as data_api
 import searching.search_api as search_api
@@ -38,7 +36,15 @@ def product(id_, name, eumetsat):
         click.echo(f'Not enough information to fetch a product.')
         return
 
-    result = data_api.fetch_metadata_by_id(id_, eumetsat=eumetsat)
+    try:
+        result = data_api.fetch_metadata_by_id(id_, eumetsat=eumetsat)
+    except exceptions.FailedRequestError as e:
+        # carriage return, clear line
+        click.secho('\r\033[0J⚙ ', fg='red', nl=False)
+        click.echo(f'Download request status code: {e.request.status_code} [{e.request.reason}]. ', nl=False)
+        click.echo('Did you mean to use --eumetsat flag?')
+        return
+
     id_, title, wkt, file_size, eumetsat, status = result
 
     product_file = paths.raw_file_storage / f'{title}.zip'
@@ -61,20 +67,15 @@ def product(id_, name, eumetsat):
     if auth is None:
         raise exceptions.NoAuthenticationFoundError()
 
-    with requests.get(url, stream=True, auth=auth) as request:
-        if request.status_code != 200:
-            # carriage return, clear line
-            click.secho('\r\033[0J⚙ ', fg='red', nl=False)
-            click.echo(f'Get request status code: {request.status_code} [{request.reason}]. Terminating.')
-            return
-
+    try:
+        download_process = multiprocessing.Process(target=data_api.download_product, args=(url, auth, product_file))
+        download_process.start()
+        data_api.monitor_download_process(download_process, product_file, file_size)
+    except exceptions.FailedRequestError as e:
         # carriage return, clear line
-        click.echo(f'\r\033[0J⏳ ', nl=False)
-        click.secho(f'{title}', bold=True)
-
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            download_thread = executor.submit(data_api.write_request_content_to_file, request, product_file)
-            executor.submit(data_api.wait_for_download_thread, download_thread, product_file, file_size)
+        click.secho('\r\033[0J⚙ ', fg='red', nl=False)
+        click.echo(f'Download request status code: {e.request.status_code} [{e.request.reason}]. Terminating.')
+        return
 
     # go to the beginning of previous line, clear line
     click.secho(f'\033[1F\033[0J✓ ', fg='green', nl=False)

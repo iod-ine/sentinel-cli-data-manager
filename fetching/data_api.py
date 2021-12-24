@@ -86,22 +86,30 @@ def fetch_metadata_by_ids(ids, eumetsat=False):
         yield i
 
 
-def write_request_content_to_file(request, file):
-    """ Stream the opened request to the specified file. """
+def download_product(url, auth, file):
+    """ Download a product from the given url to the specified file. """
 
-    with open(file, 'bw') as f:
-        shutil.copyfileobj(request.raw, f)
+    with requests.get(url, stream=True, auth=auth) as request:
+        if request.status_code != 200:
+            raise exceptions.FailedRequestError(request)
+
+        with open(file, 'bw') as f:
+            shutil.copyfileobj(request.raw, f)
 
 
-def wait_for_download_thread(download_thread, file, target_size):
-    """ Display the progress bar while waiting for the download thread to finish. """
+def monitor_download_process(process, file, target_size):
+    """ Report the progress of a running download process. """
 
+    file = pathlib.Path(file)
     start_time = time.time()
+    target_size_mb = round(target_size / 1024 / 1024, 1)
 
-    while download_thread.running():
-        current_size = pathlib.Path(file).stat().st_size
+    while process.is_alive():
+        try:
+            current_size = file.stat().st_size
+        except FileNotFoundError:
+            current_size = 0
 
-        target_size_mb = round(target_size / 1024 / 1024, 1)
         current_size_mb = round(current_size / 1024 / 1024, 1)
         percent_done = current_size / target_size * 100
 
@@ -110,4 +118,4 @@ def wait_for_download_thread(download_thread, file, target_size):
 
         click.echo(f'\r\033[0J    Downloading: {current_size_mb} / {target_size_mb} MB', nl=False)
         click.echo(f' [{percent_done:.2f}%] {elapsed_time}', nl=False)
-        time.sleep(0.1)
+        time.sleep(0.2)
